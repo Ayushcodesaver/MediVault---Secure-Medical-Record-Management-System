@@ -5,7 +5,22 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { upsertUser } from "./db";
 import { TRPCError } from "@trpc/server";
-import { createMedicalRecord, getMedicalRecordsByPatient, getMedicalRecordById, verifyMedicalRecord, logRecordAccess, getAccessLogs } from "./medicalRecords";
+import {
+  createMedicalRecord,
+  getMedicalRecordsByPatient,
+  getMedicalRecordById,
+  verifyMedicalRecord,
+  logRecordAccess,
+  getAccessLogs,
+  getBlockchainHashForRecord,
+  shareRecordWithUser,
+  getSharedRecordsForUser,
+  checkRecordAccess,
+  getRecordsSharedByPatient,
+  revokeRecordAccess,
+} from "./medicalRecords";
+import { sendOTPViaSMS as sendOTPViaTwilio } from "./_core/sms";
+import { adminRouter } from "./adminRouter";
 
 // Store OTPs in memory (in production, use Redis or database)
 const otpStore = new Map<string, { code: string; expiresAt: number; attempts: number }>();
@@ -16,8 +31,7 @@ function generateOTP(): string {
 
 async function sendOTPViaSMS(phoneNumber: string, otp: string): Promise<boolean> {
   try {
-    console.log(`[SMS] Sending OTP ${otp} to ${phoneNumber}`);
-    return true;
+    return await sendOTPViaTwilio(phoneNumber, otp);
   } catch (error) {
     console.error("[SMS] Failed to send OTP:", error);
     return false;
@@ -26,6 +40,7 @@ async function sendOTPViaSMS(phoneNumber: string, otp: string): Promise<boolean>
 
 export const appRouter = router({
   system: systemRouter,
+  admin: adminRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -316,6 +331,136 @@ export const appRouter = router({
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch access logs",
+          });
+        }
+      }),
+
+    getBlockchainHash: protectedProcedure
+      .input(z.object({ recordId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        try {
+          const record = await getMedicalRecordById(input.recordId);
+          if (!record) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Record not found" });
+          }
+
+          const hasAccess = await checkRecordAccess(input.recordId, ctx.user!.id, ctx.user!.role);
+          if (!hasAccess) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "You do not have access to this record",
+            });
+          }
+
+          const blockchainHash = await getBlockchainHashForRecord(input.recordId);
+          await logRecordAccess(input.recordId, ctx.user!.id, "view");
+
+          return blockchainHash;
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch blockchain hash",
+          });
+        }
+      }),
+
+    share: protectedProcedure
+      .input(z.object({
+        recordId: z.number(),
+        grantedToUserId: z.number(),
+        accessLevel: z.enum(["view", "download", "share"]).default("view"),
+        expiresInDays: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const record = await getMedicalRecordById(input.recordId);
+          if (!record) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Record not found" });
+          }
+
+          if (record.patientId !== ctx.user!.id && record.doctorId !== ctx.user!.id) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "You do not have permission to share this record",
+            });
+          }
+
+          const expiresAt = input.expiresInDays
+            ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000)
+            : undefined;
+
+          const success = await shareRecordWithUser(
+            input.recordId,
+            record.patientId,
+            input.grantedToUserId,
+            input.accessLevel,
+            expiresAt
+          );
+
+          if (!success) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to share record",
+            });
+          }
+
+          await logRecordAccess(input.recordId, ctx.user!.id, "share");
+
+          return {
+            success: true,
+            message: "Record shared successfully",
+          };
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to share record",
+          });
+        }
+      }),
+
+    getSharedWithMe: protectedProcedure
+      .query(async ({ ctx }) => {
+        try {
+          return await getSharedRecordsForUser(ctx.user!.id);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch shared records",
+          });
+        }
+      }),
+
+    getSharedByMe: protectedProcedure
+      .query(async ({ ctx }) => {
+        try {
+          return await getRecordsSharedByPatient(ctx.user!.id);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch shared records",
+          });
+        }
+      }),
+
+    revokeAccess: protectedProcedure
+      .input(z.object({ sharingId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const success = await revokeRecordAccess(input.sharingId);
+          if (!success) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to revoke access",
+            });
+          }
+          return { success: true, message: "Access revoked successfully" };
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to revoke access",
           });
         }
       }),

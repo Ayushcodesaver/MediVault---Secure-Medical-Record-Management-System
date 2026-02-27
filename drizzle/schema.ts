@@ -17,6 +17,17 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin", "patient", "doctor", "hospital", "insurance"]).default("user").notNull(),
+  // OAuth provider information
+  googleId: varchar("googleId", { length: 255 }).unique(),
+  githubId: varchar("githubId", { length: 255 }).unique(),
+  // User profile information
+  phoneNumber: varchar("phoneNumber", { length: 20 }),
+  dateOfBirth: varchar("dateOfBirth", { length: 10 }),
+  gender: mysqlEnum("gender", ["male", "female", "other"]),
+  address: text("address"),
+  // Permissions tracking
+  permissions: text("permissions"), // JSON array of permission names
+  isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -100,3 +111,33 @@ export const rolePermissions = mysqlTable("role_permissions", {
 
 export type RolePermission = typeof rolePermissions.$inferSelect;
 export type InsertRolePermission = typeof rolePermissions.$inferInsert;
+
+/**
+ * User-specific permissions (overrides role permissions)
+ */
+export const userPermissions = mysqlTable("user_permissions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  permissionId: int("permissionId").notNull(),
+  grantedAt: timestamp("grantedAt").defaultNow().notNull(),
+  grantedBy: int("grantedBy"), // Admin who granted this permission
+});
+
+export type UserPermission = typeof userPermissions.$inferSelect;
+export type InsertUserPermission = typeof userPermissions.$inferInsert;
+
+/**
+ * Record sharing permissions (for patient to grant access to doctors)
+ */
+export const recordSharing = mysqlTable("record_sharing", {
+  id: int("id").autoincrement().primaryKey(),
+  recordId: int("recordId").notNull(),
+  patientId: int("patientId").notNull(),
+  grantedToUserId: int("grantedToUserId").notNull(),
+  accessLevel: mysqlEnum("accessLevel", ["view", "download", "share"]).default("view").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RecordSharing = typeof recordSharing.$inferSelect;
+export type InsertRecordSharing = typeof recordSharing.$inferInsert;
