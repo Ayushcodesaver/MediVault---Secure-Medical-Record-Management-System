@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { Shield, User, Lock, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import Footer from "@/components/layout/Footer";
 
 /**
  * MediVault Login/Registration Page
@@ -277,12 +278,15 @@ export default function LoginPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Footer */}
+          {/* Footer Links */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
-            <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+            <p>By continuing, you agree to our <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a></p>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

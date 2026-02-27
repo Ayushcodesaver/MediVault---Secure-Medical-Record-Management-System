@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { Shield, ArrowLeft, CheckCircle, AlertCircle, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Footer from "@/components/layout/Footer";
 
 /**
  * MediVault Verify Records Page
@@ -281,6 +282,9 @@ export default function VerifyRecordsPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { Shield, ArrowLeft, Download, Share2, CheckCircle, Eye } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Footer from "@/components/layout/Footer";
 
 /**
  * MediVault View Records Page
@@ -269,6 +270,9 @@ export default function ViewRecordsPage() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

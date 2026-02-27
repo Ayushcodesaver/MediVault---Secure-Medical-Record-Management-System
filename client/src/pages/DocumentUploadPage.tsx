@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { Shield, ArrowLeft, Upload, CheckCircle, FileText, Lock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Footer from "@/components/layout/Footer";
 
 /**
  * MediVault Document Upload Page
@@ -322,6 +323,9 @@ export default function DocumentUploadPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { Shield, Plus, FileText, Upload, CheckCircle, Settings, LogOut, TrendingUp, Calendar, HardDrive } from "lucide-react";
 import { useState } from "react";
+import Footer from "@/components/layout/Footer";
 import { toast } from "sonner";
 
 /**
@@ -196,6 +197,9 @@ export default function DashboardPage() {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

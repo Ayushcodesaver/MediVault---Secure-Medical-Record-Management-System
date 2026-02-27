@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { Shield, ArrowLeft, Save, FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Footer from "@/components/layout/Footer";
 
 /**
  * MediVault Add Medical Record Page
@@ -283,6 +284,9 @@ export default function AddRecordPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
