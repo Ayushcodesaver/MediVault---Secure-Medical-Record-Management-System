@@ -409,7 +409,7 @@ Include license notice in copies.
 
 **Lead Developer**
 Aayush Sharma
-[your.email@example.com](aayushsharma80104@gmail.com)
+[aayushsharma80104@gmail.com]
 GitHub:Ayushcodesaver
 
 ---
