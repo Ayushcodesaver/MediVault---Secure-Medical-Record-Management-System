@@ -30,6 +30,7 @@ export default function Home() {
             <a href="/features" className="text-foreground hover:text-primary transition-colors">Features</a>
             <a href="/security" className="text-foreground hover:text-primary transition-colors">Security</a>
             <a href="/about" className="text-foreground hover:text-primary transition-colors">About</a>
+            <a href="/oauth-demo" className="text-foreground hover:text-primary transition-colors">OAuth Demo</a>
           </nav>
           <div className="flex items-center gap-3">
             <Button 

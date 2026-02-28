@@ -8,6 +8,7 @@ import { Shield, User, Lock, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import Footer from "@/components/layout/Footer";
+import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 /**
  * MediVault Login/Registration Page
@@ -120,6 +121,9 @@ export default function LoginPage() {
 
             {/* Login Tab */}
             <TabsContent value="login" className="space-y-6 mt-8">
+              {/* Social Login Buttons */}
+              <SocialLoginButtons disabled={loading} />
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Username or Email</label>

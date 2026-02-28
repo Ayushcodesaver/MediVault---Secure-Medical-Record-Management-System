@@ -20,6 +20,7 @@ import ContactPage from "./pages/ContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import CompliancePage from "./pages/CompliancePage";
+import OAuthDemoPage from "./pages/OAuthDemoPage";
 
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
       <Route path={"/privacy"} component={PrivacyPage} />
       <Route path={"/terms"} component={TermsPage} />
       <Route path={"/compliance"} component={CompliancePage} />
+      <Route path={"/oauth-demo"} component={OAuthDemoPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
