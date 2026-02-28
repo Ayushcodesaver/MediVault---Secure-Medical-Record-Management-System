@@ -1,9 +1,4 @@
-Below is your content properly structured and cleaned for a **professional GitHub README.md file**.
-It includes badges, clean formatting, anchors, and GitHub-friendly Markdown.
 
-You can copy-paste this directly into your `README.md`.
-
----
 
 # 🏥 MediVault
 
